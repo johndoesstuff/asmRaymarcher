@@ -1,3 +1,3 @@
 TARGET:
-	nasm -f elf main.asm
-	ld -m elf_i386 -s -o main main.o
+	nasm -f elf64 -g -F dwarf main.asm
+	gcc -nostartfiles -no-pie -o main main.o
