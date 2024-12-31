@@ -1,16 +1,16 @@
 section .data
 	; camera position
-	cam_x: db 0
-	cam_y: db 0
-	cam_z: db 0
+	cam_pos: db 0, 0, 0
 
 	; sphere position
-	sp_x: db 0
-	sp_y: db 0
-	sp_z: db 0
+	sp_pos: db 0, 0, 0
 
 	; looping
-	count: db 0
+	current_row: db 0
+	current_col: db 0
+
+	ray_pos: db 0, 0, 0
+	ray_dir: db 0, 0, 0
 
 	; screen size
 	sc_col: dw 0
@@ -18,7 +18,11 @@ section .data
 
 	whmsg db 'Screen width: %u  Screen height: %u', 10, 0
 
+	row_test db '+', 0
+
 	lpmsg db 'looped', 0
+
+	shading db '.', 0
 
 section .bss
 	sz RESW 4
@@ -48,29 +52,36 @@ _start:
 	xor eax, eax
 	call printf
 
-	mov rdi, [sc_col] ; malloc screen cols to ray pointers
-	call malloc
-	mov [ray_pointers], rax
-
 	; initialize row loop
 	movzx eax, WORD [sc_row]
-	mov [count], al
+	mov [current_row], al
 
-allocate_ray_rows:
-
-	mov rdi, [sc_row] ; malloc screen rows to screen cols
-	call malloc
-	movzx rsi, BYTE [count]
-	shl rsi, 3 ; 8 byte pointer size
-	mov [ray_pointers+rsi], rax	
-
-	mov rdi, lpmsg ; print screen size using printf
+do_row:
+	
+	mov rdi, row_test
 	xor eax, eax
 	call printf
 
-	dec BYTE [count]	
-	cmp BYTE [count], 0
-	jg allocate_ray_rows
+	movzx eax, WORD [sc_col]
+	mov [current_col], al
+
+	call do_col
+	
+	dec BYTE [current_row]	
+	cmp BYTE [current_row], 0
+	ja do_row
 
 	xor edi, edi
 	call exit
+
+do_col:
+	
+	mov rdi, shading
+	xor eax, eax
+	call printf
+
+	dec BYTE [current_col]
+	cmp BYTE [current_col], 0
+	ja do_col
+
+	ret
