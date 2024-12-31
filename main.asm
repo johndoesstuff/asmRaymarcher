@@ -58,7 +58,12 @@ _start:
 
 allocate_ray_rows:
 
-	
+	mov rdi, [sc_row] ; malloc screen rows to screen cols
+	call malloc
+	movzx rsi, BYTE [count]
+	shl rsi, 3 ; 8 byte pointer size
+	mov [ray_pointers+rsi], rax	
+
 	mov rdi, lpmsg ; print screen size using printf
 	xor eax, eax
 	call printf
