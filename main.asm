@@ -1,26 +1,22 @@
 section .data
 	; camera position
-	cam_pos: db 0, 0, 0
+	cam_pos: dq 0.0, 0.0, 0.0
 
 	; sphere position
-	sp_pos: db 0, 0, 0
+	sp_pos: dq 0.0, 0.0, 0.0
 
 	; looping
-	current_row: db 0
-	current_col: db 0
+	current_row: dw 0
+	current_col: dw 0
 
-	ray_pos: db 0, 0, 0
-	ray_dir: db 0, 0, 0
+	ray_pos: db 0.0, 0.0, 0.0
+	ray_dir: db 0.0, 0.0, 0.0
 
 	; screen size
 	sc_col: dw 0
 	sc_row: dw 0
 
 	whmsg db 'Screen width: %u  Screen height: %u', 10, 0
-
-	row_test db '+', 0
-
-	lpmsg db 'looped', 0
 
 	shading db '.', 0
 
@@ -53,22 +49,19 @@ _start:
 	call printf
 
 	; initialize row loop
-	movzx eax, WORD [sc_row]
-	mov [current_row], al
+	mov ax, WORD [sc_row]
+	mov [current_row], ax
 
 do_row:
 	
-	mov rdi, row_test
-	xor eax, eax
-	call printf
-
-	movzx eax, WORD [sc_col]
-	mov [current_col], al
+	; initialize col loop
+	mov ax, WORD [sc_col]
+	mov [current_col], ax
 
 	call do_col
 	
-	dec BYTE [current_row]	
-	cmp BYTE [current_row], 0
+	dec WORD [current_row] ; dec row counter
+	cmp WORD [current_row], 0
 	ja do_row
 
 	xor edi, edi
@@ -76,12 +69,20 @@ do_row:
 
 do_col:
 	
+	call cast_ray
+
 	mov rdi, shading
 	xor eax, eax
 	call printf
 
-	dec BYTE [current_col]
-	cmp BYTE [current_col], 0
+	dec WORD [current_col] ; dec col counter
+	cmp WORD [current_col], 0
 	ja do_col
 
+	ret
+
+cast_ray:
+
+	
+	
 	ret
