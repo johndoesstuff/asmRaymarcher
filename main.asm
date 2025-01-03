@@ -183,6 +183,30 @@ cast_ray:
 
 	ret
 
+march_ray:
+
+	call get_sdf
+	movss xmm1, [ray_dir]
+	movss xmm2, [ray_dir+4]
+	movss xmm3, [ray_dir+8]
+
+	mulss xmm1, xmm0
+	mulss xmm2, xmm0	
+	mulss xmm3, xmm0
+
+	movss xmm0, [ray_pos]
+	addss xmm1, xmm0
+	movss xmm0, [ray_pos+4]
+	addss xmm2, xmm0
+	movss xmm0, [ray_pos+8]
+	addss xmm3, xmm0
+
+	movss [ray_pos], xmm1
+	movss [ray_pos+4], xmm2
+	movss [ray_pos+8], xmm3
+
+	ret
+
 get_sdf: ; returns sdf to xmm0
 	
 	movss xmm0, [ray_pos]
