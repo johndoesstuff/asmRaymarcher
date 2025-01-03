@@ -1,9 +1,10 @@
 section .data
 	; camera position
-	cam_pos: dq 0.0, 0.0, 0.0
+	cam_pos: dd 0.0, 0.0, -10.0
 
 	; sphere position
-	sp_pos: dq 0.0, 0.0, 0.0
+	sp_pos: dd 0.0, 0.0, 0.0
+	sp_rad: dd 5.0
 
 	; looping
 	current_row: dw 0
@@ -27,6 +28,8 @@ section .data
 	shading db '.', 0
 
 	ray_debug db '%f,%f,%f', 10, 0
+
+	sdf_debug db 'sdf: %f', 10, 0
 
 section .bss
 	sz resw 4
@@ -156,20 +159,56 @@ cast_ray:
 
 	movss xmm0, [cam_pos]
 	movss [ray_pos], xmm0
-	movss xmm0, [cam_pos+8]
+	movss xmm0, [cam_pos+4]
 	movss [ray_pos+4], xmm0
-	movss xmm9, [cam_pos+16]
+	movss xmm0, [cam_pos+8]
 	movss [ray_pos+8], xmm0
 
 	; debug
-	movss xmm0, [ray_dir]
-	movss xmm1, [ray_dir+4]
-	movss xmm2, [ray_dir+8]
+	movss xmm0, [ray_pos]
+	movss xmm1, [ray_pos+4]
+	movss xmm2, [ray_pos+8]
 	cvtss2sd xmm0, xmm0 ; convert to double for printf
 	cvtss2sd xmm1, xmm1 ; convert to double for printf
 	cvtss2sd xmm2, xmm2 ; convert to double for printf
         lea rdi, [ray_debug]
 	mov eax, 3
         call printf
+
+	call get_sdf
+	cvtss2sd xmm0, xmm0
+	lea rdi, [sdf_debug]
+	mov eax, 1
+	call printf
+
+	ret
+
+get_sdf: ; returns sdf to xmm0
+	
+	movss xmm0, [ray_pos]
+	movss xmm1, [ray_pos+4]
+	movss xmm2, [ray_pos+8]
+	movss xmm3, [sp_pos]
+	movss xmm4, [sp_pos+4]
+	movss xmm5, [sp_pos+8]
+
+	call get_dist
+
+	movss xmm1, [sp_rad]
+	subss xmm0, xmm1
+
+	ret
+
+get_dist: ; returns dist to xmm0 from xmm0-5
+
+	subss xmm0, xmm3
+	subss xmm1, xmm4
+	subss xmm2, xmm5
+	mulss xmm0, xmm0
+	mulss xmm1, xmm1
+	mulss xmm2, xmm2
+	addss xmm0, xmm1
+	addss xmm0, xmm2
+	sqrtss xmm0, xmm0
 
 	ret
