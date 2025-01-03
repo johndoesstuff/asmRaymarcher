@@ -119,6 +119,7 @@ cast_ray:
 	mulss xmm1, [half] ; divide col by 2
 	subss xmm0, xmm1 ; c-col/2
 	mulss xmm0, [two] ; 2*(c-col/2)
+	divss xmm0, [sc_colf]
 	movss [ray_dir], xmm0
 
 	movss xmm1, [sc_rowf] ; align row
@@ -126,6 +127,7 @@ cast_ray:
 	mulss xmm1, [half] ; divide row by 2
 	subss xmm0, xmm1 ; r-row/2
 	mulss xmm0, [two] ; 2*(r-row/2)
+	divss xmm0, [sc_rowf]
 	movss [ray_dir+4], xmm0
 
 	; normalize ray
@@ -137,7 +139,7 @@ cast_ray:
 	movss xmm1, [ray_dir+8]
 	mulss xmm1, xmm1
 	addss xmm0, xmm1
-	
+
 	sqrtss xmm0, xmm0
 
 	movss xmm1, [ray_dir]
