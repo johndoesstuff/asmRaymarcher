@@ -102,11 +102,11 @@ do_col:
 
 cast_ray:
 
-	mov eax, current_col
+	movzx eax, WORD [current_col]
 	cvtsi2ss xmm0, eax ; convert col to float
 	movss [ray_dir], xmm0 ; store col
 
-	mov eax, current_row
+	movzx eax, WORD [current_row]
 	cvtsi2ss xmm0, eax
 	movss [ray_dir+4], xmm0 ; store row
 
@@ -159,9 +159,10 @@ cast_ray:
 	movss xmm9, [cam_pos+16]
 	movss [ray_pos+8], xmm0
 
+	; debug
 	movss xmm0, [ray_dir]
 	movss xmm1, [ray_dir+4]
-	movss xmm2, [one]
+	movss xmm2, [ray_dir+8]
 	cvtss2sd xmm0, xmm0 ; convert to double for printf
 	cvtss2sd xmm1, xmm1 ; convert to double for printf
 	cvtss2sd xmm2, xmm2 ; convert to double for printf
