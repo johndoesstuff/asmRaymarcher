@@ -3,11 +3,14 @@ section .data
 	cam_pos: dd 0.0, 0.0, -10.0
 
 	; sphere position
-	sp_pos: dd 0.0, 0.0, 0.0
+	sp_pos: dd 0.0, 0.0, 4.95
 	sp_rad: dd 5.0
 
 	; ray distance
 	ray_dst: dd 0.0
+
+	; space wrap
+	space_wrap: dd 15.0
 
 	; looping
 	current_row: dw 0
@@ -28,7 +31,9 @@ section .data
 
 	epsilon: dd 0.001
 
-	shading_max: dd 6.0
+	shading_max: dd 5.0
+
+	shading_min: dd 2.0
 
 	whmsg db 'Screen width: %u  Screen height: %u', 10, 0
 
@@ -213,6 +218,7 @@ ray_hit:
 	movss xmm0, [ray_dst]
 	divss xmm0, [two]
 	minss xmm0, [shading_max]
+	maxss xmm0, [shading_min]
 	xor rax, rax
 	cvttss2si eax, xmm0
 	mov rcx, rax
@@ -260,26 +266,33 @@ march_ray:
 	call get_sdf
 	movss xmm1, [ray_dst]
 	addss xmm1, xmm0
-	movss [ray_dst], xmm1
+	movss [ray_dst], xmm1 ; acc ray_dst
 	
-	movss xmm1, [ray_dir]
+	movss xmm1, [ray_dir] ; load ray_dir
 	movss xmm2, [ray_dir+4]
 	movss xmm3, [ray_dir+8]
 
-	mulss xmm1, xmm0
+	mulss xmm1, xmm0 ; multiply ray_dir by sdf
 	mulss xmm2, xmm0	
 	mulss xmm3, xmm0
 
-	movss xmm0, [ray_pos]
-	addss xmm1, xmm0
-	movss xmm0, [ray_pos+4]
-	addss xmm2, xmm0
-	movss xmm0, [ray_pos+8]
-	addss xmm3, xmm0
+	movss xmm0, [ray_pos] ; mod ray_pos 0
+	addss xmm0, xmm1
+	movss xmm1, [space_wrap]
+	;call mod
+	movss [ray_pos], xmm0
 
-	movss [ray_pos], xmm1
-	movss [ray_pos+4], xmm2
-	movss [ray_pos+8], xmm3
+	movss xmm0, [ray_pos+4] ; mod ray_pos 4
+	addss xmm0, xmm2
+	movss xmm1, [space_wrap]
+	;call mod
+	movss [ray_pos+4], xmm0
+
+	movss xmm0, [ray_pos+8]
+	addss xmm0, xmm3
+	movss xmm1, [space_wrap]
+	;call mod
+	movss [ray_pos+8], xmm0
 
 	ret
 
@@ -310,5 +323,26 @@ get_dist: ; returns dist to xmm0 from xmm0-5
 	addss xmm0, xmm1
 	addss xmm0, xmm2
 	sqrtss xmm0, xmm0
+
+	ret
+
+mod: ; xmm0 mod xmm1
+
+	sub rsp, 48
+	movaps [rsp], xmm1
+	movaps [rsp+16], xmm2
+	movaps [rsp+32], xmm3
+	
+	movss xmm3, xmm0
+	divss xmm0, xmm1
+	roundss xmm2, xmm0, 1
+	mulss xmm2, xmm1
+	movss xmm0, xmm3
+	subss xmm0, xmm2
+
+	movaps xmm3, [rsp+32]
+	movaps xmm2, [rsp+16]
+	movaps xmm1, [rsp]
+	add rsp, 48
 
 	ret
