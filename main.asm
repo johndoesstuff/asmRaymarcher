@@ -23,13 +23,18 @@ section .data
 	half: dd 0.5
 	two: dd 2.0
 
+	epsilon: dd 0.001
+
 	whmsg db 'Screen width: %u  Screen height: %u', 10, 0
 
-	shading db '.', 0
+	;shading db '.', 0
 
 	ray_debug db '%f,%f,%f', 10, 0
 
 	sdf_debug db 'sdf: %f', 10, 0
+
+	shading db ' .-+x#'
+	shadingf db '%c', 0
 
 section .bss
 	sz resw 4
@@ -93,9 +98,9 @@ do_col:
 
 	call cast_ray
 
-	mov rdi, shading
-	xor eax, eax
-	call printf
+	;mov rdi, shading
+	;xor eax, eax
+	;call printf
 
 	dec WORD [current_col] ; dec col counter
 	cmp WORD [current_col], 0
@@ -189,6 +194,16 @@ cast_ray:
 	call march_ray
 	call march_ray
 
+	; index shading by rcx
+	mov rdi, shadingf
+	xor eax, eax
+	mov rsi, shading
+	mov rcx, 2
+	add rsi, rcx
+	mov al, byte [rsi]
+	movzx rsi, al
+	call printf
+	
 	; debug
 	movss xmm0, [ray_pos]
 	movss xmm1, [ray_pos+4]
@@ -198,13 +213,13 @@ cast_ray:
 	cvtss2sd xmm2, xmm2 ; convert to double for printf
         lea rdi, [ray_debug]
 	mov eax, 3
-        call printf
+        ;call printf
 
 	call get_sdf
 	cvtss2sd xmm0, xmm0
 	lea rdi, [sdf_debug]
 	mov eax, 1
-	call printf
+	;call printf
 
 	ret
 
