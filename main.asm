@@ -194,11 +194,23 @@ cast_ray:
 	call march_ray
 	call march_ray
 
+	ucomiss xmm0, [epsilon]
+	jb ray_hit
+	jnb ray_nothit
+
+ray_hit:
+	mov rcx, 2
+	jmp shade_ray
+
+ray_nothit:
+	mov rcx, 0
+	jmp shade_ray
+
+shade_ray:
 	; index shading by rcx
 	mov rdi, shadingf
 	xor eax, eax
 	mov rsi, shading
-	mov rcx, 2
 	add rsi, rcx
 	mov al, byte [rsi]
 	movzx rsi, al
