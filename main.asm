@@ -6,6 +6,9 @@ section .data
 	sp_pos: dd 0.0, 0.0, 0.0
 	sp_rad: dd 5.0
 
+	; ray distance
+	ray_dst: dd 0.0
+
 	; looping
 	current_row: dw 0
 	current_col: dw 0
@@ -25,6 +28,8 @@ section .data
 
 	epsilon: dd 0.001
 
+	shading_max: dd 6.0
+
 	whmsg db 'Screen width: %u  Screen height: %u', 10, 0
 
 	;shading db '.', 0
@@ -33,8 +38,10 @@ section .data
 
 	sdf_debug db 'sdf: %f', 10, 0
 
-	shading db ' .-+x#'
+	shading db ' #x*+-.'
 	shadingf db '%c', 0
+
+	shading_debug db 'ray_dst: %f', 10, 0
 
 section .bss
 	sz resw 4
@@ -110,6 +117,9 @@ do_col:
 
 cast_ray:
 
+	movss xmm0, [zero] ; reset ray_dst
+	movss [ray_dst], xmm0
+	
 	movzx eax, WORD [current_col]
 	cvtsi2ss xmm0, eax ; convert col to float
 	movss [ray_dir], xmm0 ; store col
@@ -199,14 +209,24 @@ cast_ray:
 	jnb ray_nothit
 
 ray_hit:
-	mov rcx, 2
+
+	movss xmm0, [ray_dst]
+	divss xmm0, [two]
+	minss xmm0, [shading_max]
+	xor rax, rax
+	cvttss2si eax, xmm0
+	mov rcx, rax
+	
+	;mov rcx, 5
 	jmp shade_ray
 
 ray_nothit:
+
 	mov rcx, 0
 	jmp shade_ray
 
 shade_ray:
+
 	; index shading by rcx
 	mov rdi, shadingf
 	xor eax, eax
@@ -238,6 +258,10 @@ shade_ray:
 march_ray:
 
 	call get_sdf
+	movss xmm1, [ray_dst]
+	addss xmm1, xmm0
+	movss [ray_dst], xmm1
+	
 	movss xmm1, [ray_dir]
 	movss xmm2, [ray_dir+4]
 	movss xmm3, [ray_dir+8]
