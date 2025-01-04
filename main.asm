@@ -164,6 +164,31 @@ cast_ray:
 	movss xmm0, [cam_pos+8]
 	movss [ray_pos+8], xmm0
 
+	call march_ray
+	call march_ray
+	call march_ray
+	call march_ray
+	call march_ray
+	call march_ray
+	call march_ray
+	call march_ray
+	call march_ray
+	call march_ray
+	call march_ray
+	call march_ray
+	call march_ray
+	call march_ray
+	call march_ray
+	call march_ray
+	call march_ray
+	call march_ray
+	call march_ray
+	call march_ray
+	call march_ray
+	call march_ray
+	call march_ray
+	call march_ray
+
 	; debug
 	movss xmm0, [ray_pos]
 	movss xmm1, [ray_pos+4]
