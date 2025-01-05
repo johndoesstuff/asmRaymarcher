@@ -1,13 +1,17 @@
 section .data
 	; camera position
-	cam_pos: dd 0.0, 0.0, -7.5
+	cam_pos: dd 0.0, 0.0, 0
 
 	; sphere position
-	sp_pos: dd 7.5, 7.5, 0
+	sp_pos: dd 7.5, 7.5, 7.5
 	sp_rad: dd 5.0
 
 	; ray distance
 	ray_dst: dd 0.0
+
+	; iterations
+	iterations: dw 50
+	i_count: dw 0
 
 	; space wrap
 	space_wrap: dd 15.0
@@ -183,24 +187,16 @@ cast_ray:
 	movss [ray_pos+4], xmm0
 	movss xmm0, [cam_pos+8]
 	movss [ray_pos+8], xmm0
+	
+	mov WORD [i_count], 0
+
+march_ray_loop:
 
 	call march_ray
-	call march_ray
-	call march_ray
-	call march_ray
-	call march_ray
-	call march_ray
-	call march_ray
-	call march_ray
-	call march_ray
-	call march_ray
-	call march_ray
-	call march_ray
-	call march_ray
-	call march_ray
-	call march_ray
-	call march_ray
-	call march_ray
+	inc WORD [i_count]
+	movzx eax, WORD [iterations]
+	cmp WORD [i_count], ax
+	jb march_ray_loop
 
 	call get_sdf
 
@@ -211,6 +207,8 @@ cast_ray:
 ray_hit:
 
 	movss xmm0, [ray_dst]
+	divss xmm0, [two]
+	divss xmm0, [two]
 	divss xmm0, [two]
 	minss xmm0, [shading_max]
 	maxss xmm0, [shading_min]
@@ -286,7 +284,7 @@ march_ray:
 	movss xmm0, [ray_pos+8]
 	addss xmm0, xmm3
 	movss xmm1, [space_wrap]
-	;call mod
+	call mod
 	movss [ray_pos+8], xmm0
 
 	ret
