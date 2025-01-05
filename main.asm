@@ -1,10 +1,10 @@
 section .data
 	; camera position
-	cam_pos: dd 0.0, 0.0, -30.0
+	cam_pos: dd 0.0, 0.0, -7.5
 
 	; sphere position
-	sp_pos: dd 7.5, 7.5, 0.0
-	sp_rad: dd 5.5
+	sp_pos: dd 7.5, 7.5, 0
+	sp_rad: dd 5.0
 
 	; ray distance
 	ray_dst: dd 0.0
@@ -201,6 +201,8 @@ cast_ray:
 	call march_ray
 	call march_ray
 	call march_ray
+
+	call get_sdf
 
 	ucomiss xmm0, [epsilon] ; check for hit
 	jb ray_hit
