@@ -1,10 +1,10 @@
 section .data
 	; camera position
-	cam_pos: dd 0.0, 0.0, -10.0
+	cam_pos: dd 0.0, 0.0, -30.0
 
 	; sphere position
-	sp_pos: dd 0.0, 0.0, 4.95
-	sp_rad: dd 5.0
+	sp_pos: dd 7.5, 7.5, 0.0
+	sp_rad: dd 5.5
 
 	; ray distance
 	ray_dst: dd 0.0
@@ -31,9 +31,9 @@ section .data
 
 	epsilon: dd 0.001
 
-	shading_max: dd 5.0
+	shading_max: dd 6.0
 
-	shading_min: dd 2.0
+	shading_min: dd 1.0
 
 	whmsg db 'Screen width: %u  Screen height: %u', 10, 0
 
@@ -177,7 +177,7 @@ cast_ray:
 	divss xmm1, xmm0
 	movss [ray_dir+8], xmm1
 
-	movss xmm0, [cam_pos]
+	movss xmm0, [cam_pos] ; initialize ray to camera
 	movss [ray_pos], xmm0
 	movss xmm0, [cam_pos+4]
 	movss [ray_pos+4], xmm0
@@ -201,15 +201,8 @@ cast_ray:
 	call march_ray
 	call march_ray
 	call march_ray
-	call march_ray
-	call march_ray
-	call march_ray
-	call march_ray
-	call march_ray
-	call march_ray
-	call march_ray
 
-	ucomiss xmm0, [epsilon]
+	ucomiss xmm0, [epsilon] ; check for hit
 	jb ray_hit
 	jnb ray_nothit
 
@@ -279,13 +272,13 @@ march_ray:
 	movss xmm0, [ray_pos] ; mod ray_pos 0
 	addss xmm0, xmm1
 	movss xmm1, [space_wrap]
-	;call mod
+	call mod
 	movss [ray_pos], xmm0
 
 	movss xmm0, [ray_pos+4] ; mod ray_pos 4
 	addss xmm0, xmm2
 	movss xmm1, [space_wrap]
-	;call mod
+	call mod
 	movss [ray_pos+4], xmm0
 
 	movss xmm0, [ray_pos+8]
@@ -298,7 +291,7 @@ march_ray:
 
 get_sdf: ; returns sdf to xmm0
 	
-	movss xmm0, [ray_pos]
+	movss xmm0, [ray_pos] ; load values for get_dist
 	movss xmm1, [ray_pos+4]
 	movss xmm2, [ray_pos+8]
 	movss xmm3, [sp_pos]
@@ -314,15 +307,18 @@ get_sdf: ; returns sdf to xmm0
 
 get_dist: ; returns dist to xmm0 from xmm0-5
 
-	subss xmm0, xmm3
+	subss xmm0, xmm3 ; get differences
 	subss xmm1, xmm4
 	subss xmm2, xmm5
-	mulss xmm0, xmm0
+
+	mulss xmm0, xmm0 ; square differences
 	mulss xmm1, xmm1
 	mulss xmm2, xmm2
-	addss xmm0, xmm1
+
+	addss xmm0, xmm1 ; sum squares
 	addss xmm0, xmm2
-	sqrtss xmm0, xmm0
+
+	sqrtss xmm0, xmm0 ; sqrt sum
 
 	ret
 
